@@ -72,7 +72,7 @@ const PORT = 3001;
 // Middleware
 app.use(cors({
   origin: [
-    "https://trangsv.congsinhvieen.id.vn/api"
+    "https://trangsv.congsinhvieen.id.vn"
   ],
   credentials: true
 }));
