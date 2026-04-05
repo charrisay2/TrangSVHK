@@ -17,9 +17,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 5173, // Đảm bảo Frontend chạy ở cổng 5173
+      port: 5173,
       proxy: {
-        // Mọi request bắt đầu bằng /api sẽ được chuyển sang Backend
         '/api': {
           target: 'http://localhost:3001',
           changeOrigin: true,
