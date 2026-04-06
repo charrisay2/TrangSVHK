@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../services/api"; // Dùng api thật gọi MySQL
+import api from "../../services/api"; // D
 import { Grade } from "../../types";
 
 interface GradeState {

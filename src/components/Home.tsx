@@ -55,12 +55,17 @@ export default function Home({ user }: HomeProps) {
     const targetId = notif.targetUserId ? String(notif.targetUserId) : null;
     const myId = String(user.id);
 
+
+
     // Bức tường thép: Admin và Giảng viên KHÔNG BAO GIỜ nhận thông báo học phí
     const isFeeNotif =
       notif.type === "FEE_REMINDER" ||
       notif.message.toLowerCase().includes("hóa đơn") ||
       notif.message.toLowerCase().includes("học phí");
 
+    
+    
+    
     if (role !== "STUDENT" && isFeeNotif) {
       return false;
     }
@@ -249,7 +254,6 @@ export default function Home({ user }: HomeProps) {
             ))}
           </div>
         </section>
-        {/* ĐÃ KHÔI PHỤC: Khung thông báo cho Admin */}
         <section className="card p-6">
           <h2 className="text-lg font-bold text-slate-800 mb-4">
             Thông báo hệ thống
@@ -279,6 +283,11 @@ export default function Home({ user }: HomeProps) {
       </div>
     </div>
   );
+
+
+
+
+
 
   const teacherTodaySchedule = useMemo(() => {
     return classes
@@ -369,8 +378,6 @@ export default function Home({ user }: HomeProps) {
             </div>
           )}
         </section>
-
-        {/* ĐÃ KHÔI PHỤC: Khung thông báo cho Giảng viên */}
         <section className="card p-6">
           <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Bell size={20} className="text-primary" />
@@ -410,6 +417,8 @@ export default function Home({ user }: HomeProps) {
       </div>
     </div>
   );
+
+
 
   const studentTodaySchedule = useMemo(() => {
     return classes
