@@ -8,7 +8,7 @@ interface Message {
 }
 
 // API Key mới cứng của bạn
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 export default function AIChatBox() {
   const [isOpen, setIsOpen] = useState(false);

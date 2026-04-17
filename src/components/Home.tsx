@@ -55,17 +55,12 @@ export default function Home({ user }: HomeProps) {
     const targetId = notif.targetUserId ? String(notif.targetUserId) : null;
     const myId = String(user.id);
 
-
-
     // Bức tường thép: Admin và Giảng viên KHÔNG BAO GIỜ nhận thông báo học phí
     const isFeeNotif =
       notif.type === "FEE_REMINDER" ||
       notif.message.toLowerCase().includes("hóa đơn") ||
       notif.message.toLowerCase().includes("học phí");
 
-    
-    
-    
     if (role !== "STUDENT" && isFeeNotif) {
       return false;
     }
@@ -236,24 +231,15 @@ export default function Home({ user }: HomeProps) {
           <h2 className="text-lg font-bold text-slate-800 mb-4">
             Hoạt động gần đây
           </h2>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <p className="text-sm text-slate-600">
-                  Người dùng <span className="font-bold">SV202400{i}</span> vừa
-                  đăng nhập hệ thống.
-                </p>
-                <span className="text-[10px] text-slate-400 ml-auto">
-                  5 phút trước
-                </span>
-              </div>
-            ))}
+          <div className="w-full">
+            <img
+              src="/banner.jpg"
+              alt="banner"
+              className="w-full h-64 object-cover rounded-xl shadow"
+            />
           </div>
         </section>
+        {/* ĐÃ KHÔI PHỤC: Khung thông báo cho Admin */}
         <section className="card p-6">
           <h2 className="text-lg font-bold text-slate-800 mb-4">
             Thông báo hệ thống
@@ -283,11 +269,6 @@ export default function Home({ user }: HomeProps) {
       </div>
     </div>
   );
-
-
-
-
-
 
   const teacherTodaySchedule = useMemo(() => {
     return classes
@@ -378,6 +359,8 @@ export default function Home({ user }: HomeProps) {
             </div>
           )}
         </section>
+
+        {/* ĐÃ KHÔI PHỤC: Khung thông báo cho Giảng viên */}
         <section className="card p-6">
           <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Bell size={20} className="text-primary" />
@@ -417,8 +400,6 @@ export default function Home({ user }: HomeProps) {
       </div>
     </div>
   );
-
-
 
   const studentTodaySchedule = useMemo(() => {
     return classes

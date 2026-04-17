@@ -50,17 +50,7 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-export const deleteUser = createAsyncThunk(
-  'users/deleteUser',
-  async (id: number, { rejectWithValue }) => {
-    try {
-      await api.delete(`/users/${id}`);
-      return id;
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to delete user');
-    }
-  }
-);
+
 
 const userSlice = createSlice({
   name: 'users',
@@ -91,10 +81,6 @@ const userSlice = createSlice({
         if (index !== -1) {
           state.users[index] = action.payload;
         }
-      })
-      // Delete User
-      .addCase(deleteUser.fulfilled, (state, action) => {
-        state.users = state.users.filter(u => u.id !== action.payload);
       });
   },
 });

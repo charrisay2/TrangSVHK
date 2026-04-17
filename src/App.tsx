@@ -131,6 +131,7 @@ function AppContent() {
 export default function App() {
   return (
     <Provider store={store}>
+      {/* ĐÃ FIX: Gắn Toaster vào đây để thông báo xuất hiện góc trên bên phải, có màu sắc rõ ràng */}
       <Toaster position="top-right" richColors />
       <AppContent />
     </Provider>

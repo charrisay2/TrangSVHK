@@ -16,7 +16,6 @@ import {
   fetchUsers,
   createUser,
   updateUser,
-  deleteUser,
 } from "../../redux/slices/userSlice";
 import { User, UserRole, Department, StudentClass } from "../../types";
 import api from "../../services/api";
@@ -120,20 +119,6 @@ export default function UserManagement({
     new Set(classes.map((c) => c.cohort)),
   ).filter(Boolean);
 
-  const handleDelete = async (id: string | number) => {
-    // THAY THẾ window.confirm
-    setConfirmDialog({
-      isOpen: true,
-      title: "Xác nhận xóa",
-      message:
-        "Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.",
-      type: "danger",
-      action: async () => {
-        await dispatch(deleteUser(Number(id)));
-        toast.success("Xóa người dùng thành công!");
-      },
-    });
-  };
 
   const handleAddUser = async (e: FormEvent) => {
     e.preventDefault();
@@ -739,24 +724,6 @@ export default function UserManagement({
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            setConfirmDialog({
-                              isOpen: true,
-                              title: "Xác nhận xóa",
-                              message:
-                                "Bạn có chắc chắn muốn xóa người dùng này?",
-                              type: "danger",
-                              action: async () => {
-                                await dispatch(deleteUser(Number(u.id)));
-                                toast.success("Xóa người dùng thành công!");
-                              },
-                            });
-                          }}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                        >
-                          <X size={16} />
-                        </button>
                         <button
                           onClick={() => openEditModal(u)}
                           className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 rounded-lg transition-all"
