@@ -113,7 +113,7 @@ export default function AIChatBox() {
           <>
             {/* ĐÃ CẬP NHẬT LOGO VAA Ở NÚT BẤM */}
             <img
-              src="/logo-vaa.png"
+              src="/logo-hk.png"
               alt="VAA Logo"
               className="w-8 h-8 object-contain mb-0.5"
               onError={(e) => (e.currentTarget.style.display = "none")}
@@ -138,7 +138,7 @@ export default function AIChatBox() {
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 p-1">
                 {/* ĐÃ CẬP NHẬT LOGO VAA Ở HEADER KHUNG CHAT */}
                 <img
-                  src="/logo-vaa.png"
+                  src="/logo-hk.png"
                   alt="VAA"
                   className="w-full h-full object-contain"
                   onError={(e) => (e.currentTarget.style.display = "none")}
