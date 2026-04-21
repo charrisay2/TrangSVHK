@@ -20,8 +20,6 @@ export default function Login({ onLogin }: LoginProps) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [showForgotPwd, setShowForgotPwd] = useState(false);
   const [showContact, setShowContact] = useState(false);
 
   const dispatch = useDispatch();
@@ -160,13 +158,6 @@ export default function Login({ onLogin }: LoginProps) {
                   Ghi nhớ đăng nhập
                 </span>
               </label>
-              <button
-                type="button"
-                onClick={() => setShowForgotPwd(true)}
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Quên mật khẩu?
-              </button>
             </div>
 
             <div className="flex justify-center">
@@ -203,52 +194,6 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
         </div>
       </motion.div>
-
-      {/* Forgot Password Modal */}
-      <AnimatePresence>
-        {showForgotPwd && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
-            >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                <h3 className="text-lg font-bold text-slate-800">
-                  Quên mật khẩu
-                </h3>
-                <button
-                  onClick={() => setShowForgotPwd(false)}
-                  className="text-slate-400 hover:text-slate-600"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-6">
-                <p className="text-slate-600 mb-4 text-sm">
-                  Vui lòng nhập mã sinh viên hoặc email của bạn. Chúng tôi sẽ
-                  gửi hướng dẫn khôi phục mật khẩu qua email.
-                </p>
-                <input
-                  type="text"
-                  placeholder="Mã sinh viên / Email"
-                  className="input-field mb-4"
-                />
-                <button
-                  onClick={() => {
-                    toast.success("Yêu cầu khôi phục mật khẩu đã được gửi!"); // THAY THẾ ALERT
-                    setShowForgotPwd(false);
-                  }}
-                  className="btn-primary w-full py-2.5"
-                >
-                  Gửi yêu cầu
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Contact Training Dept Modal */}
       <AnimatePresence>
@@ -308,8 +253,8 @@ export default function Login({ onLogin }: LoginProps) {
                       Hotline Hỗ Trợ
                     </p>
                     <p className="text-xs text-slate-500">
-                      028 38 123 456 (Giờ hành chính)
-                    </p>
+                      0868595973(Giờ hành chính)
+                    </p> 
                   </div>
                 </a>
               </div>
