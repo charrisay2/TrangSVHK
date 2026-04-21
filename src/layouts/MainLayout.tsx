@@ -38,8 +38,6 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
           </div>
         </main>
       </div>
-
-      {/* ĐÃ THÊM: Đặt Chatbox ở đây để nó luôn nổi lên ở mọi trang */}
       <AIChatBox />
     </div>
   );

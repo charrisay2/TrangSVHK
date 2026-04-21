@@ -50,7 +50,6 @@ export default function UserManagement({
     type: "danger" | "info";
   } | null>(null);
 
-  // Form state
   const [newUser, setNewUser] = useState<Partial<User> & { password?: string }>(
     {
       role: type === "STUDENT" ? "STUDENT" : "TEACHER",

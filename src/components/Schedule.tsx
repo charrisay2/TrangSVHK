@@ -175,7 +175,7 @@ export default function Schedule() {
         <div className="flex items-center gap-4">
           <button className="btn-primary flex items-center gap-2">
             <CalendarIcon size={18} />
-            Học kỳ 1 - 2024
+            Học kỳ 1
           </button>
         </div>
       </div>

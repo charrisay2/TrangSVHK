@@ -47,7 +47,6 @@ export type Module =
 function AppContent() {
   const user = useSelector((state: RootState) => state.auth.user);
 
-  // Đọc link từ URL (để xử lý vụ PayOS redirect)
   const [activeModule, setActiveModule] = useState<Module>(() => {
     const params = new URLSearchParams(window.location.search);
     const mod = params.get("module") as Module;

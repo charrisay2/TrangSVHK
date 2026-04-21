@@ -54,7 +54,7 @@ export default function GradeEntry({ teacherId }: GradeEntryProps) {
       const sem =
         (currentClass as any).semester?.name ||
         (currentClass as any).semester ||
-        "Học kỳ 1 - 2024";
+        "Học kỳ 1";
       setSelectedSemester(sem);
     }
   }, [currentClass]);

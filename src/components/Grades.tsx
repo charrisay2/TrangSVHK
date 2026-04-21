@@ -15,7 +15,7 @@ export default function Grades() {
   const [grades, setGrades] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const semesters = ['All', 'Học kỳ 1 - 2024', 'Học kỳ 2 - 2024'];
+  const semesters = ['All', 'Học kỳ 1', 'Học kỳ 2'];
 
   useEffect(() => {
     dispatch(fetchCourses());
@@ -26,7 +26,7 @@ export default function Grades() {
       if (!user) return;
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/grades?studentId=${user.id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/grades?studentId=${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setGrades(data);
