@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
 import api from '../../services/api';
-
+import { toast } from "sonner";
 export default function CurriculumManagement() {
   const [majors, setMajors] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -102,7 +102,7 @@ export default function CurriculumManagement() {
       setNewDepartmentCode('');
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 
@@ -112,7 +112,7 @@ export default function CurriculumManagement() {
         await api.delete(`/subjects/${id}`);
         fetchData();
       } catch (err) {
-        alert('Lỗi khi xóa');
+        toast.error('Lỗi khi xóa');
       }
     }
   };

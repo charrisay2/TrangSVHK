@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, Send, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
-
+import { toast } from "sonner";
 interface Notification {
   id: number;
   title?: string;
@@ -48,10 +48,11 @@ export default function NotificationManagement() {
       });
       setBroadcastTitle('');
       setBroadcastMsg('');
-      alert('Đã gửi thông báo thành công!');
+      toast.success('Đã gửi thông báo thành công!');
+
       fetchNotifications(); // Refresh list
     } catch (error) {
-      alert('Lỗi khi gửi thông báo');
+       toast.error('Lỗi khi gửi thông báo');
     } finally {
       setIsSending(false);
     }

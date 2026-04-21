@@ -14,7 +14,7 @@ import { AppDispatch, RootState } from "../../redux/store";
 import { fetchCourses } from "../../redux/slices/courseSlice";
 import { fetchUsers } from "../../redux/slices/userSlice";
 import api from "../../services/api";
-
+import { toast } from "sonner";
 interface AttendanceProps {
   teacherId: string | number;
 }
@@ -135,9 +135,10 @@ export default function Attendance({ teacherId }: AttendanceProps) {
         date,
         records: attendance,
       });
-      alert("Đã lưu điểm danh thành công!");
+      toast.success("Đã lưu điểm danh thành công!");
+
     } catch (error) {
-      alert("Lỗi khi lưu điểm danh");
+       toast.error("Lỗi khi lưu điểm danh");
     } finally {
       setIsLoading(false);
     }

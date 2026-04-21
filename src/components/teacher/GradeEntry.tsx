@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from "../../redux/store";
 import { fetchCourses } from "../../redux/slices/courseSlice";
 import { fetchUsers } from "../../redux/slices/userSlice";
 import api from "../../services/api"; // Đã thêm import api chuẩn của hệ thống
-
+import { toast } from "sonner";
 interface GradeEntryProps {
   teacherId: string | number;
 }
@@ -168,10 +168,11 @@ export default function GradeEntry({ teacherId }: GradeEntryProps) {
         grades: gradesArray,
       });
 
-      alert("Đã lưu bảng điểm thành công!");
+     toast.success("Đã lưu bảng điểm thành công!");
+
     } catch (error) {
       console.error("Failed to save grades:", error);
-      alert("Lỗi khi lưu bảng điểm.");
+      toast.error("Lỗi khi lưu bảng điểm.");
     } finally {
       setIsSaving(false);
     }
