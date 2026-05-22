@@ -18,6 +18,8 @@ import {
   Menu,
   X,
   Megaphone,
+  ShieldAlert, // Bổ sung icon
+  FileSignature // Bổ sung icon
 } from "lucide-react";
 import { useState } from "react";
 import { Module } from "../../App";
@@ -68,6 +70,18 @@ const Sidebar: FC<SidebarProps> = ({
       roles: ["ADMIN"],
     },
     {
+      id: "import-data", // Bổ sung lại
+      label: "Nhập dữ liệu Excel",
+      icon: Upload,
+      roles: ["ADMIN"],
+    },
+    {
+      id: "warnings", // Bổ sung lại
+      label: "Trung tâm Cảnh báo",
+      icon: ShieldAlert,
+      roles: ["ADMIN"],
+    },
+    {
       id: "notifications",
       label: "Tạo thông báo",
       icon: Megaphone,
@@ -92,6 +106,12 @@ const Sidebar: FC<SidebarProps> = ({
       roles: ["TEACHER"],
     },
     {
+      id: "exam-mgmt", // Bổ sung lại
+      label: "Khảo thí",
+      icon: ShieldAlert,
+      roles: ["TEACHER"],
+    },
+    {
       id: "course-registration",
       label: "Đăng ký học phần",
       icon: BookOpen,
@@ -99,12 +119,24 @@ const Sidebar: FC<SidebarProps> = ({
     },
     { id: "schedule", label: "Lịch học", icon: Clock, roles: ["STUDENT"] },
     {
+      id: "student-exams", // Bổ sung lại
+      label: "Thi trực tuyến",
+      icon: FileSignature,
+      roles: ["STUDENT"],
+    },
+    {
       id: "grades",
       label: "Kết quả học tập",
       icon: GraduationCap,
       roles: ["STUDENT"],
     },
     { id: "finance", label: "Học phí", icon: Wallet, roles: ["STUDENT"] },
+    {
+      id: "requests", // Bổ sung lại
+      label: "Đơn từ thông minh",
+      icon: FileText,
+      roles: ["STUDENT", "TEACHER", "ADMIN"],
+    },
     {
       id: "profile",
       label: "Hồ sơ cá nhân",
@@ -269,7 +301,6 @@ const Sidebar: FC<SidebarProps> = ({
         <div className="absolute bottom-0 left-0 w-full p-4 border-t border-slate-100 bg-white">
           <button
             onClick={() => {
-              // ĐÃ FIX: Chỉnh về trang chủ trước khi xóa tài khoản
               setActiveModule("home");
               dispatch(logout());
             }}

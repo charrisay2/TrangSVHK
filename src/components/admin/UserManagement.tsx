@@ -494,6 +494,7 @@ export default function UserManagement({
                           majorId: Number(e.target.value),
                         })
                       }
+                      disabled={isEditModalOpen}
                     >
                       <option value="">Chọn ngành</option>
                       {majors.map((m) => (

@@ -43,7 +43,6 @@ export default function ResourceUpload({ teacherId }: ResourceUploadProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
 
-  // ĐÃ THÊM: State cho Modal xác nhận xóa
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;

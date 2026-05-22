@@ -327,7 +327,7 @@ export default function ScheduleManagement() {
     }
 
     const subject = subjects.find(
-      (s) => s.code === c.code && s.majorId === c.majorId,
+      (s) => s.code === c.code && s.majorId === c.majorId,  
     );
     if (subject) {
       setSelectedSubjectId(subject.id);
