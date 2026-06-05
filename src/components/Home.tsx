@@ -117,7 +117,7 @@ export default function Home({ user }: HomeProps) {
     fetchNotifs();
 
     const newSocket = io(
-      (import.meta as any).env.VITE_API_URL || "http://localhost:3000",
+      (import.meta as any).env.VITE_API_URL || "http://192.168.20.83:3000",
     );
     setSocket(newSocket);
 

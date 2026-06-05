@@ -1,30 +1,31 @@
 import { useState, useEffect } from 'react';
-import { ShieldAlert, AlertTriangle, Play, CheckCircle } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Play, CheckCircle, X, Send } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'sonner';
 
 interface WarningModel {
   id: number;
-  student: {
-    id: number;
-    name: string;
-    code: string;
-    email: string;
-    username: string;
-  };
+  student: { id: number; name: string; username: string; email: string };
   type: string;
   severity: string;
   reason: string;
   status: 'ACTIVE' | 'RESOLVED';
   createdAt: string;
 }
+
 export default function WarningCenter() {
   const [warnings, setWarnings] = useState<WarningModel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [evaluating, setEvaluating] = useState(false);
+  
+  // Custom Warning Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [customWarning, setCustomWarning] = useState({ studentId: '', reason: '' });
+  const [isSending, setIsSending] = useState(false);
 
   const fetchWarnings = async () => {
     try {
+      // Auto evaluating when fetching
+      await api.post('/warnings/evaluate').catch(() => {});
       const res = await api.get('/warnings');
       setWarnings(res.data);
     } catch (error) {
@@ -38,19 +39,6 @@ export default function WarningCenter() {
     fetchWarnings();
   }, []);
 
-  const handleEvaluate = async () => {
-    setEvaluating(true);
-    try {
-      const res = await api.post('/warnings/evaluate');
-      toast.success(res.data.message);
-      fetchWarnings();
-    } catch (error) {
-      toast.error('Lỗi khi chạy quét hệ thống');
-    } finally {
-      setEvaluating(false);
-    }
-  };
-
   const handleResolve = async (id: number) => {
     try {
       await api.put(`/warnings/${id}`, { status: 'RESOLVED' });
@@ -61,47 +49,47 @@ export default function WarningCenter() {
     }
   };
 
+  const submitCustomWarning = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customWarning.studentId || !customWarning.reason) {
+      toast.error('Vui lòng nhập đủ thông tin');
+      return;
+    }
+    setIsSending(true);
+    try {
+      await api.post('/warnings', {
+        studentId: parseInt(customWarning.studentId),
+        type: 'CUSTOM',
+        severity: 'WARNING',
+        reason: customWarning.reason
+      });
+      toast.success('Đã gửi cảnh cáo cá nhân');
+      setIsModalOpen(false);
+      setCustomWarning({ studentId: '', reason: '' });
+      fetchWarnings();
+    } catch (error) {
+      toast.error('Lỗi khi gửi cảnh cáo');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <ShieldAlert className="text-rose-600"/> Trung tâm Kỷ luật & Cảnh báo Học vụ
           </h1>
-          <p className="text-slate-500 mt-1">Quản lý các vi phạm và sinh viên đăng ký thiếu tín chỉ (Dưới 15 TC)</p>
+          <p className="text-slate-500 mt-1">Quản lý các vi phạm và hiển thị danh sách cảnh cáo</p>
         </div>
-        <div className="flex gap-2">
+        <div>
           <button 
-            onClick={() => {
-              const studentId = prompt('Nhập ID sinh viên:');
-              const reason = prompt('Nhập lý do cảnh cáo cá nhân hóa:');
-              if (studentId && reason) {
-                api.post('/warnings', {
-                  studentId: parseInt(studentId),
-                  type: 'CUSTOM',
-                  severity: 'WARNING',
-                  reason
-                }).then(() => {
-                  toast.success('Đã gửi cảnh cáo cá nhân');
-                  fetchWarnings();
-                }).catch(() => toast.error('Lỗi khi gửi'));
-              }
-            }}
-            className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200"
           >
-            + Gửi Cảnh cáo mới
-          </button>
-          <button 
-            onClick={handleEvaluate}
-            disabled={evaluating}
-            className="btn-primary flex items-center gap-2 px-6 bg-rose-600 hover:bg-rose-700 shadow-rose-200 disabled:opacity-50"
-          >
-            {evaluating ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Play size={18} />
-            )}
-            Tự động đánh giá hệ thống
+            <Send size={18} />
+            Gửi cảnh báo / Kỷ luật
           </button>
         </div>
       </div>
@@ -174,6 +162,62 @@ export default function WarningCenter() {
           </div>
         )}
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                <AlertTriangle className="text-amber-500" size={20} />
+                Gửi Cảnh Báo Riêng
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={submitCustomWarning} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">ID Sinh viên</label>
+                <input
+                  type="number"
+                  className="input-field w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Ví dụ: 1001"
+                  value={customWarning.studentId}
+                  onChange={(e) => setCustomWarning({ ...customWarning, studentId: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Lý do / Nội dung cảnh báo</label>
+                <textarea
+                  className="input-field w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Nhập nội dung nhắc nhở..."
+                  rows={4}
+                  value={customWarning.reason}
+                  onChange={(e) => setCustomWarning({ ...customWarning, reason: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="btn-primary px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm shadow-indigo-200 disabled:opacity-50"
+                >
+                  {isSending ? 'Đang gửi...' : 'Gửi Thông Báo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

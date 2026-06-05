@@ -26,7 +26,7 @@ export default function ExamEnvironment({ examId, onComplete }: Props) {
       }
     };
     fetchExam();
-
+    // alt + Tab 
     // Security constraints if lockdown mode
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {

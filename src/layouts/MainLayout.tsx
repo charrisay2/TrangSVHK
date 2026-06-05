@@ -2,7 +2,9 @@ import { FC, ReactNode, useState } from "react";
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
 import { Module } from "../App";
-import AIChatBox from "../components/common/AIChatBox"; // ĐÃ THÊM: Import Chatbox AI
+
+import AIChatBox from "../components/common/AIChatBox";
+import StudentWarningDialog from "../components/shared/StudentWarningDialog";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -38,7 +40,12 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
           </div>
         </main>
       </div>
+
+    
       <AIChatBox />
+
+   
+      <StudentWarningDialog />
     </div>
   );
 };

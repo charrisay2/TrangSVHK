@@ -85,7 +85,6 @@ function AppContent() {
     );
   }
 
-  // Logic xử lý QR Attendance (bị thiếu ở file dưới)
   const pathname = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   const isQRAttendance = pathname === '/student/qr-attendance';

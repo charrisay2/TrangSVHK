@@ -3,16 +3,17 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import api from '../../services/api';
 import { toast } from 'sonner';
-import { FileText, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, Clock, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface RequestModel {
   id: number;
   type: 'STUDENT_LEAVE' | 'TEACHER_SUBSTITUTE';
-  requester: { id: number; name: string; code: string };
+  requester: { id: number; name: string; username: string };
   targetClass: { id: number; name: string; code: string } | null;
   substituteTeacher: { id: number; name: string } | null;
   reason: string;
+  reviewNote?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
 }
@@ -26,6 +27,15 @@ export default function SmartRequests() {
   // For form
   const [reason, setReason] = useState('');
   const [targetClassId, setTargetClassId] = useState('');
+
+  // Auto evaluating system warnings when students view this (not directly related to this component but we update this component's request schema anyway)
+  // Let's add state for approving/rejecting dialog
+  const [reviewModal, setReviewModal] = useState<{ isOpen: boolean; id: number | null; status: 'APPROVED' | 'REJECTED'; note: string }>({
+    isOpen: false,
+    id: null,
+    status: 'APPROVED',
+    note: ''
+  });
 
   const fetchRequests = async () => {
     try {
@@ -68,10 +78,20 @@ export default function SmartRequests() {
     }
   };
 
-  const handleUpdateStatus = async (id: number, status: 'APPROVED' | 'REJECTED') => {
+  const handleOpenReview = (id: number, status: 'APPROVED' | 'REJECTED') => {
+    setReviewModal({ isOpen: true, id, status, note: '' });
+  };
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewModal.id) return;
     try {
-      await api.put(`/requests/${id}`, { status });
+      await api.put(`/requests/${reviewModal.id}`, { 
+        status: reviewModal.status,
+        reviewNote: reviewModal.note 
+      });
       toast.success('Đã cập nhật trạng thái');
+      setReviewModal({ isOpen: false, id: null, status: 'APPROVED', note: '' });
       fetchRequests();
     } catch (error) {
       toast.error('Lỗi khi cập nhật trạng thái');
@@ -89,12 +109,12 @@ export default function SmartRequests() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <FileText className="text-indigo-600"/> Đơn từ thông minh
           </h1>
-          <p className="text-slate-500">Quản lý và nộp các loại đơn từ (Xin nghỉ, báo bận, vv.)</p>
+          <p className="text-slate-500 mt-1">Quản lý và nộp các loại đơn từ (Xin nghỉ, báo bận, vv.)</p>
         </div>
         {(user?.role === 'STUDENT' || user?.role === 'TEACHER') && (
           <button 
@@ -159,7 +179,7 @@ export default function SmartRequests() {
         ) : (
           <div className="divide-y divide-slate-100">
             {requests.map((req) => (
-              <div key={req.id} className="p-5 hover:bg-slate-50 transition-colors flex flex-col md:flex-row justify-between gap-4">
+              <div key={req.id} className="p-5 hover:bg-slate-50 transition-colors flex flex-col justify-between gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <h3 className="font-bold text-slate-800">
@@ -172,20 +192,25 @@ export default function SmartRequests() {
                      <p className="text-sm text-slate-600"><span className="font-medium text-slate-700">Lớp:</span> {req.targetClass.name}</p>
                   )}
                   <p className="text-sm text-slate-600"><span className="font-medium text-slate-700">Lý do:</span> {req.reason}</p>
-                  <p className="text-xs text-slate-400">Gửi lúc: {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
+                  {req.status !== 'PENDING' && req.reviewNote && (
+                    <div className="p-3 bg-slate-100 rounded-lg mt-2">
+                      <p className="text-sm text-slate-700"><span className="font-bold">Lý do/Phản hồi của Ban Giám Hiệu: </span>{req.reviewNote}</p>
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-400 mt-2 block">Gửi lúc: {new Date(req.createdAt).toLocaleString('vi-VN')}</p>
                 </div>
                 
                 {user?.role === 'ADMIN' && req.status === 'PENDING' && (
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2 pt-2 border-t border-slate-100">
                     <button 
-                      onClick={() => handleUpdateStatus(req.id, 'APPROVED')}
-                      className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold rounded-lg text-sm transition-colors flex items-center gap-1"
+                      onClick={() => handleOpenReview(req.id, 'APPROVED')}
+                      className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold rounded-lg text-sm transition-colors flex items-center gap-2"
                     >
-                      <CheckCircle size={16}/> Duyệt
+                      <CheckCircle size={16}/> Chấp nhận
                     </button>
                     <button 
-                      onClick={() => handleUpdateStatus(req.id, 'REJECTED')}
-                      className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold rounded-lg text-sm transition-colors flex items-center gap-1"
+                      onClick={() => handleOpenReview(req.id, 'REJECTED')}
+                      className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold rounded-lg text-sm transition-colors flex items-center gap-2"
                     >
                       <XCircle size={16}/> Từ chối
                     </button>
@@ -196,6 +221,50 @@ export default function SmartRequests() {
           </div>
         )}
       </div>
+
+      {reviewModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className={`flex justify-between items-center p-6 border-b border-slate-100 ${reviewModal.status === 'APPROVED' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+              <h3 className={`font-bold text-lg flex items-center gap-2 ${reviewModal.status === 'APPROVED' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {reviewModal.status === 'APPROVED' ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                {reviewModal.status === 'APPROVED' ? 'Chấp nhận yêu cầu' : 'Từ chối yêu cầu'}
+              </h3>
+              <button onClick={() => setReviewModal({ ...reviewModal, isOpen: false })} className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={submitReview} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Lý do / Phản hồi (Bắt buộc)</label>
+                <textarea
+                  className="input-field w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Nhập lý do phản hồi cho sinh viên/giảng viên..."
+                  rows={4}
+                  value={reviewModal.note}
+                  onChange={(e) => setReviewModal({ ...reviewModal, note: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setReviewModal({ ...reviewModal, isOpen: false })}
+                  className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className={`px-6 py-2 text-white rounded-xl font-bold shadow-sm disabled:opacity-50 ${reviewModal.status === 'APPROVED' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-200'}`}
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

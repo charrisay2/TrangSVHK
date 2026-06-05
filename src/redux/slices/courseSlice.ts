@@ -124,7 +124,7 @@ const courseSlice = createSlice({
       })
       .addCase(unregisterCourse.fulfilled, (state, action) => {
         const index = state.classes.findIndex(c => c.id === action.payload.id);
-        if (index !== -1) {
+        if (index !== -1) { 
           state.classes[index] = action.payload;
         }
       });
