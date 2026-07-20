@@ -24,6 +24,9 @@ interface AttendanceProps {
 teacherId: string | number;
 }
 
+
+
+
 export default function Attendance({
 teacherId,
 }: AttendanceProps) {
@@ -178,7 +181,16 @@ const selectedDayOfWeek = selectedDateObj.getDay();
 const isDateValid = expectedDays
 ? expectedDays.includes(selectedDayOfWeek)
 : true;
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
+const selectedDateOnly = new Date(date);
+selectedDateOnly.setHours(0, 0, 0, 0);
+
+const isPastDate = selectedDateOnly < today;
+
+const canEditAttendance =
+  isDateValid && !isPastDate;
 const handleStatusChange = (
 studentId: string | number,
 status: "Present" | "Absent" | "Late"
@@ -292,17 +304,18 @@ className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
     <div className="flex items-center gap-3">
       <button
         onClick={() => setShowQR(true)}
+        disabled={!canEditAttendance}
         className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all"
       >
         <QrCode size={18} />
         Mã QR Điểm Danh
       </button>
 
-      <button
-        onClick={handleSave}
-        disabled={isLoading || !isDateValid}
-        className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-      >
+     <button
+  onClick={handleSave}
+  disabled={isLoading || !canEditAttendance}
+  className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+>
         {isLoading ? (
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
         ) : (
@@ -313,6 +326,12 @@ className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
       </button>
     </div>
   </div>
+  {isPastDate && (
+  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+    <AlertCircle size={14} />
+    Buổi học đã qua, không thể chỉnh sửa hoặc điểm danh.
+  </p>
+)}
 
   {/* FILTER */}
   <div className="card p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -451,6 +470,7 @@ className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
                           "Present"
                         )
                       }
+                      disabled={!canEditAttendance}
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         status === "Present"
                           ? "bg-emerald-500 text-white shadow-md"
@@ -468,6 +488,7 @@ className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
                           "Absent"
                         )
                       }
+                      disabled={!canEditAttendance}
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         status === "Absent"
                           ? "bg-red-500 text-white shadow-md"
@@ -485,6 +506,7 @@ className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
                           "Late"
                         )
                       }
+                      disabled={!canEditAttendance}
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         status === "Late"
                           ? "bg-amber-500 text-white shadow-md"

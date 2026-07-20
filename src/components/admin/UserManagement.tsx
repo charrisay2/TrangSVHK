@@ -323,7 +323,6 @@ export default function UserManagement({
                     Họ và tên
                   </label>
                   <input
-                    required
                     type="text"
                     className="input-field disabled:bg-slate-100 disabled:text-slate-500"
                     placeholder="Nhập họ tên"
@@ -342,7 +341,6 @@ export default function UserManagement({
                     Tên đăng nhập
                   </label>
                   <input
-                    required
                     type="text"
                     className="input-field disabled:bg-slate-100 disabled:text-slate-500"
                     placeholder="username"
@@ -376,7 +374,6 @@ export default function UserManagement({
                     Email
                   </label>
                   <input
-                    required
                     type="email"
                     className="input-field"
                     placeholder="email@example.com"

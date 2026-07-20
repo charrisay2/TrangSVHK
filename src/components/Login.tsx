@@ -110,7 +110,6 @@ export default function Login({ onLogin }: LoginProps) {
                 />
                 <input
                   type="text"
-                  required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Nhập mã sinh viên"
@@ -130,7 +129,6 @@ export default function Login({ onLogin }: LoginProps) {
                 />
                 <input
                   type={showPassword ? "text" : "password"}
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nhập mật khẩu"

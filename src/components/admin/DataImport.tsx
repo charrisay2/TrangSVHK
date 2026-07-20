@@ -9,7 +9,7 @@ export default function DataImport() {
   const [columns, setColumns] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
-  const [targetTable, setTargetTable] = useState<'users' | 'curriculum' | 'courses' | 'subjects'>('users');
+  const [targetTable, setTargetTable] = useState<'users' | 'curriculum' | 'courses' | 'subjects' | 'enrollments'>('users');
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,9 +92,9 @@ export default function DataImport() {
         break;
       case 'curriculum':
         templateData = [{ 
-          majorName: 'Công nghệ thông tin', 
-          subjectCode: 'TCC1', 
-          semesterNumber: 1 
+          'Tên ngành': 'Công nghệ thông tin', 
+          'Mã môn học': 'TCC1', 
+          'Học kỳ': 1 
         }];
         filename = 'curriculum_template.xlsx';
         break;
@@ -108,6 +108,13 @@ export default function DataImport() {
           weeks: 10
         }];
         filename = 'subjects_template.xlsx';
+        break;
+      case 'enrollments':
+        templateData = [{
+          'Tên đăng nhập': '250001',
+          'Mã lớp học phần': 'COURSE123',
+        }];
+        filename = 'enrollments_template.xlsx';
         break;
     }
 
@@ -143,6 +150,7 @@ export default function DataImport() {
                   <option value="courses">Học phần</option>
                   <option value="curriculum">Chương trình đào tạo</option>
                   <option value="subjects">Môn học gốc (Áp dụng theo từng Ngành)</option>
+                  <option value="enrollments">Sinh viên đăng ký lớp (Import)</option>
                 </select>
               </div>
 
@@ -155,6 +163,27 @@ export default function DataImport() {
                   Tải file mẫu
                 </button>
               </div>
+              
+              {targetTable === 'enrollments' && (
+                <div className="p-3 bg-blue-50 text-blue-800 text-sm rounded-lg">
+                  <strong>Lưu ý:</strong>
+                  <ul className="list-disc pl-4 mt-2 space-y-1">
+                    <li>Ở cột <b>Mã lớp học phần</b>, bạn có thể nhập vào mã môn học (trường code) hoặc ID của môn học đó trên hệ thống.</li>
+                    <li>Ở cột <b>Tên đăng nhập</b>, bạn nhập trực tiếp Mã sinh viên / Tên đăng nhập (trường username) của sinh viên.</li>
+                  </ul>
+                  <p className="mt-2 text-xs">Hệ thống tự động so khớp và đẩy dữ liệu sinh viên vào đúng môn học đó.</p>
+                </div>
+              )}
+
+              {targetTable === 'curriculum' && (
+                <div className="p-3 bg-indigo-50 text-indigo-800 text-sm rounded-lg">
+                  <strong>Lưu ý:</strong>
+                  <ul className="list-disc pl-4 mt-2 space-y-1">
+                    <li>Sử dụng cột <b>Mã môn học</b> để hệ thống dựa vào đó tiến hành nhận dạng môn học (thay vì ID).</li>
+                    <li>Hãy nhập đúng <b>Tên ngành</b> và đảm bảo ngành đó đã được tạo ra trong hệ thống.</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 

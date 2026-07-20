@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'TEACHER' | 'STUDENT';
+export type UserRole = "ADMIN" | "TEACHER" | "STUDENT";
 
 export interface User {
   id: string | number;
@@ -9,8 +9,9 @@ export interface User {
   address?: string;
   joinDate?: string;
   role: UserRole;
-  status?: 'ACTIVE' | 'RESERVED' | 'GRADUATED';
+  status?: "ACTIVE" | "RESERVED" | "GRADUATED";
   avatar?: string;
+  mustChangePassword?: boolean;
   // Student specific
   studentId?: string;
   classId?: number;
@@ -69,7 +70,7 @@ export interface Class {
   roomId?: number;
   schedule: string;
   students: (string | number)[]; // Array of student IDs
-  type?: 'Standard' | 'Advanced'; // Standard: Theo kế hoạch, Advanced: Học vượt
+  type?: "Standard" | "Advanced"; // Standard: Theo kế hoạch, Advanced: Học vượt
   majorId?: number; // Ngành học mục tiêu
   classId?: number; // Lớp học mục tiêu
   credits?: number;
@@ -77,6 +78,8 @@ export interface Class {
   semesterId?: number;
   totalPeriods?: number;
   weeks?: number;
+  startDate?: string;
+  endDate?: string;
   room?: any;
   teacher?: any;
   targetClass?: any;
@@ -88,7 +91,7 @@ export interface AttendanceRecord {
   classId: string | number;
   studentId: string | number;
   date: string;
-  status: 'Present' | 'Absent' | 'Late';
+  status: "Present" | "Absent" | "Late";
 }
 
 export interface Grade {
@@ -104,7 +107,7 @@ export interface Resource {
   id: string;
   classId: string | number;
   title: string;
-  type: 'PDF' | 'DOC' | 'SLIDE';
+  type: "PDF" | "DOC" | "SLIDE";
   url: string;
   uploadDate: string;
 }
@@ -113,9 +116,9 @@ export interface Announcement {
   id: string;
   title: string;
   date: string;
-  category: 'Academic' | 'Finance' | 'General';
+  category: "Academic" | "Finance" | "General";
   content: string;
-  priority?: 'High' | 'Medium' | 'Low';
+  priority?: "High" | "Medium" | "Low";
 }
 
 export interface Invoice {
@@ -123,5 +126,5 @@ export interface Invoice {
   title: string;
   amount: number;
   dueDate: string;
-  status: 'Paid' | 'Unpaid';
+  status: "Paid" | "Unpaid";
 }

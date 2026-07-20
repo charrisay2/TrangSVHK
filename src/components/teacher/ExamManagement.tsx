@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Search, Clock, FileText, Upload, CheckCircle, Edit, Play, Lock, AlertTriangle, MessageSquare } from 'lucide-react';
+import { BookOpen, Search, Clock, FileText, Upload, CheckCircle, Edit, Play, Lock, AlertTriangle, MessageSquare, Database } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import api from '../../services/api';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'motion/react';
+import QuestionBank from './QuestionBank';
 
 export default function ExamManagement() {
   const { user } = useSelector((state: RootState) => state.auth);
+  const [activeTab, setActiveTab] = useState<'exams' | 'bank'>('exams');
   const [exams, setExams] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,13 +19,14 @@ export default function ExamManagement() {
   
   // Submit grading
   const [gradingSubmission, setGradingSubmission] = useState<any | null>(null);
-  const [scoreInput, setScoreInput] = useState<string>('');
+  const [bankModal, setBankModal] = useState<{isOpen: boolean; examId: number | null; count: string}>({ isOpen: false, examId: null, count: '10' });
+  const [essayScores, setEssayScores] = useState<Record<number, number>>({});
   const [gradingDetails, setGradingDetails] = useState<Record<number, string>>({}); // Mapping questionId -> comment
 
   // Form State
   const [formData, setFormData] = useState({
     courseId: '',
-    title: '',
+    title: '',  
     description: '',
     startTime: '',
     endTime: '',
@@ -94,15 +97,32 @@ export default function ExamManagement() {
           }
         });
 
-        await api.post(`/exams/${examId}/questions`, { questions });
-        toast.success(`Đã tải lên ${questions.length} câu hỏi`);
+        await api.post(`/exams/${examId}/questions`, { questions, append: true });
+        toast.success(`Đã thêm ${questions.length} câu hỏi từ file Excel`);
         fetchExams();
       } catch (err) {
-        toast.error('File Excel không đúng định dạng. Cần các cột: Type, Question, OptionA, OptionB, OptionC, OptionD, CorrectAnswer, Points');
+        toast.error('File Excel không đúng định dạng.');
       }
     };
     reader.readAsBinaryString(file);
     e.target.value = '';
+  };
+
+  const handleFromBank = (exam: any) => {
+    setBankModal({ isOpen: true, examId: exam.id, count: '10' });
+  };
+
+  const submitFromBank = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bankModal.examId) return;
+    try {
+      await api.post(`/exams/${bankModal.examId}/questions-from-bank`, { count: parseInt(bankModal.count) });
+      toast.success('Đã lấy câu hỏi từ ngân hàng!');
+      fetchExams();
+      setBankModal({ isOpen: false, examId: null, count: '10' });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Lỗi khi lấy từ ngân hàng');
+    }
   };
 
   const publishExam = async (id: number) => {
@@ -126,13 +146,30 @@ export default function ExamManagement() {
 
   const saveGrade = async () => {
     try {
+       // Recompute final score
+       let rawScore = 0;
+       const totalPointsConfigured = selectedExam.questionsData?.reduce((sum: number, q: any) => sum + (q.points || 0), 0) || 1;
+       
+       selectedExam.questionsData?.forEach((q: any) => {
+         if (q.type === 'MULTIPLE_CHOICE') {
+           if (gradingSubmission.answers[q.id] === q.correctAnswer) rawScore += q.points;
+         } else {
+           rawScore += (essayScores[q.id] || 0);
+         }
+       });
+       
+       const pointScale = 100 / totalPointsConfigured;
+       let finalScore = (rawScore * pointScale) - (gradingSubmission.cheatingAttempts * 5);
+       if (finalScore < 0) finalScore = 0;
+       if (finalScore > 100) finalScore = 100;
+
        await api.put(`/exams/submissions/${gradingSubmission.id}/grade`, { 
-         score: parseFloat(scoreInput),
+         score: parseFloat(finalScore.toFixed(2)),
          gradingDetails
        });
        toast.success('Chấm điểm thành công');
        setGradingSubmission(null);
-       setScoreInput('');
+       setEssayScores({});
        setGradingDetails({});
        loadSubmissions(selectedExam);
        fetchExams();
@@ -143,8 +180,9 @@ export default function ExamManagement() {
 
   const openGradingModal = (sub: any) => {
     setGradingSubmission(sub);
-    setScoreInput(sub.score?.toString() || '');
-    setGradingDetails(sub.gradingDetails || {});
+    const initialGradingDetails: Record<number, string> = sub.gradingDetails || {};
+    setEssayScores({});
+    setGradingDetails(initialGradingDetails);
   };
 
   return (
@@ -161,8 +199,26 @@ export default function ExamManagement() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
+      <div className="flex gap-4 border-b border-slate-200">
+        <button 
+          className={`pb-3 px-4 font-bold transition-colors ${activeTab === 'exams' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
+          onClick={() => setActiveTab('exams')}
+        >
+          Danh sách Bài thi
+        </button>
+        <button 
+          className={`pb-3 px-4 font-bold transition-colors ${activeTab === 'bank' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
+          onClick={() => setActiveTab('bank')}
+        >
+          Ngân hàng Câu hỏi
+        </button>
+      </div>
+
+      {activeTab === 'bank' ? (
+        <QuestionBank courses={courses} />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-800">Danh sách bài thi</h2>
           {loading ? (
              <div className="p-8 flex justify-center"><div className="w-8 h-8 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"/></div>
@@ -199,6 +255,12 @@ export default function ExamManagement() {
                         <Upload size={16}/> Upload Excel
                         <input type="file" accept=".xlsx, .xls" className="hidden" onChange={(e) => handleFileUpload(e, exam.id)} />
                       </label>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleFromBank(exam); }}
+                        className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-lg text-sm transition-colors cursor-pointer flex items-center gap-2"
+                      >
+                        <Database size={16}/> Lấy từ Ngân hàng
+                      </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); publishExam(exam.id); }}
                         disabled={!exam.questions || exam.questions.length === 0}
@@ -287,6 +349,34 @@ export default function ExamManagement() {
           )}
         </div>
       </div>
+      )}
+
+      {/* Question Bank Modal */}
+      {bankModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-sm flex flex-col overflow-hidden shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+              <Database size={20} className="text-indigo-600" /> Lấy câu hỏi từ ngân hàng
+            </h3>
+            <form onSubmit={submitFromBank}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Số lượng câu hỏi cần lấy ngẫu nhiên</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  className="input-field" 
+                  value={bankModal.count} 
+                  onChange={(e) => setBankModal({...bankModal, count: e.target.value})} 
+                />
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
+                <button type="button" onClick={() => setBankModal({isOpen: false, examId: null, count: '10'})} className="px-4 py-2 text-slate-600 font-medium btn-secondary">Hủy</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700">Xác nhận</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Grading Modal */}
       {gradingSubmission && (
@@ -307,7 +397,7 @@ export default function ExamManagement() {
               <button 
                 onClick={() => {
                   setGradingSubmission(null);
-                  setScoreInput('');
+               
                   setGradingDetails({});
                 }} 
                 className="text-slate-400 hover:text-slate-600"
@@ -348,56 +438,106 @@ export default function ExamManagement() {
                         </p>
                       </div>
                     ) : (
-                      <div className="mt-2">
+                      <div className="mt-2 space-y-3">
                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Bài nộp tự luận:</h4>
                         <div className="p-4 bg-yellow-50/50 border border-yellow-200/50 rounded-lg whitespace-pre-wrap text-sm text-slate-700 min-h-[100px]">
                           {studentAns || <span className="text-slate-400 italic">Không có câu trả lời</span>}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100/50">
+                           <label className="text-sm font-bold text-slate-700">Chấm điểm ({q.points}đ tối đa):</label>
+                           <input 
+                              type="number"
+                              step="0.25"
+                              min="0"
+                              max={q.points}
+                              className="input-field w-24 py-1 border-indigo-200 focus:border-indigo-500"
+                              value={essayScores[q.id] === undefined ? '' : essayScores[q.id]}
+                              onChange={(e) => {
+                                 const val = parseFloat(e.target.value);
+                                 if (isNaN(val)) {
+                                    setEssayScores({ ...essayScores, [q.id]: 0 });
+                                    return;
+                                 }
+                                 if (val > q.points || val < 0) {
+                                    toast.error(`Điểm phải nằm trong khoảng từ 0 đến ${q.points}`);
+                                 } else {
+                                    setEssayScores({ ...essayScores, [q.id]: val });
+                                 }
+                              }}
+                           />
                         </div>
                       </div>
                     )}
                     
                     {/* Teacher Feedback Note per Answer */}
-                    <div className="pt-2 border-t border-slate-100 mt-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <MessageSquare size={12}/> Nhận xét của giảng viên
-                      </label>
-                      <input 
-                        className="input-field w-full text-sm py-1.5"
-                        placeholder="Thêm nhận xét cho câu trả lời này..."
-                        value={gradingDetails[q.id] || ''}
-                        onChange={(e) => setGradingDetails({ ...gradingDetails, [q.id]: e.target.value })}
-                      />
-                    </div>
+                    {((q.type === 'MULTIPLE_CHOICE' && studentAns !== q.correctAnswer) || (q.type === 'ESSAY' && (essayScores[q.id] || 0) < q.points)) && (
+                      <div className="pt-2 border-t border-slate-100 mt-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                          <MessageSquare size={12}/> Nhận xét của giảng viên
+                        </label>
+                        <input 
+                          className="input-field w-full text-sm py-1.5"
+                          placeholder="Thêm nhận xét cho câu trả lời này..."
+                          value={gradingDetails[q.id] || ''}
+                          onChange={(e) => setGradingDetails({ ...gradingDetails, [q.id]: e.target.value })}
+                        />
+                      </div>
+                    )}
                   </div>
                 )
               })}
             </div>
 
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <label className="font-bold text-slate-700">Tổng điểm chốt:</label>
-                <input 
-                  type="number" 
-                  step="0.25"
-                  className="input-field w-24 py-1.5" 
-                  value={scoreInput}
-                  onChange={(e) => setScoreInput(e.target.value)}
-                  placeholder={gradingSubmission.score?.toString() || '0'}
-                />
-                <span className="text-slate-400 text-sm">/ 100</span>
+              {/* Compute autoScore and show it */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  {(() => {
+                    let rawScore = 0;
+                    let mcqRaw = 0;
+                    let essayRaw = 0;
+                    const totalPointsConfigured = selectedExam.questionsData?.reduce((sum: number, q: any) => sum + (q.points || 0), 0) || 1;
+                    
+                    selectedExam.questionsData?.forEach((q: any) => {
+                      if (q.type === 'MULTIPLE_CHOICE') {
+                        if (gradingSubmission.answers[q.id] === q.correctAnswer) {
+                           rawScore += q.points;
+                           mcqRaw += q.points;
+                        }
+                      } else {
+                        rawScore += (essayScores[q.id] || 0);
+                        essayRaw += (essayScores[q.id] || 0);
+                      }
+                    });
+                    
+                    const pointScale = 100 / totalPointsConfigured;
+                    const penalty = gradingSubmission.cheatingAttempts * 5;
+                    let finalScore = (rawScore * pointScale) - penalty;
+                    if (finalScore < 0) finalScore = 0;
+                    if (finalScore > 100) finalScore = 100;
+                    
+                    return (
+                      <div className="text-sm border p-4 rounded-xl bg-white shadow-sm flex flex-col gap-1 min-w-[250px]">
+                        <p className="text-slate-600 font-medium flex justify-between"><span>Điểm trắc nghiệm:</span> <span>{mcqRaw} đ (Thô)</span></p>
+                        <p className="text-slate-600 font-medium flex justify-between"><span>Điểm tự luận:</span> <span>{essayRaw} đ (Thô)</span></p>
+                        <p className="text-amber-600 font-medium flex justify-between"><span>Quy đổi (Hệ 100):</span> <span>{(rawScore * pointScale).toFixed(2)}</span></p>
+                        <p className="text-rose-600 font-medium flex justify-between border-b pb-1"><span>Trừ điểm vi phạm:</span> <span>-{penalty}</span></p>
+                        <p className="text-indigo-600 font-bold text-lg mt-1 flex justify-between uppercase"><span>Tổng điểm:</span> <span>{finalScore.toFixed(2)} / 100</span></p>
+                      </div>
+                    )
+                  })()}
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setGradingSubmission(null);
+                   
+                        setGradingDetails({});
+                      }} 
+                      className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200 rounded-lg"
+                    >Hủy</button>
+                    <button onClick={saveGrade} className="btn-primary" disabled={false}>Lưu điểm</button>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => {
-                    setGradingSubmission(null);
-                    setScoreInput('');
-                    setGradingDetails({});
-                  }} 
-                  className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200 rounded-lg"
-                >Hủy</button>
-                <button onClick={saveGrade} className="btn-primary" disabled={!scoreInput}>Lưu điểm</button>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -421,7 +561,6 @@ export default function ExamManagement() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Môn học</label>
                   <select 
-                    required 
                     className="input-field"
                     value={formData.courseId}
                     onChange={(e) => setFormData({...formData, courseId: e.target.value})}
@@ -431,16 +570,21 @@ export default function ExamManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tên bài thi</label>
-                  <input required type="text" className="input-field" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Loại bài thi (Tên bài thi)</label>
+                  <select  className="input-field" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})}>
+                    <option value="">Chọn loại bài thi...</option>
+                    <option value="Kiểm tra 15 phút">Kiểm tra 15 phút</option>
+                    <option value="Kiểm tra giữa kỳ">Kiểm tra giữa kỳ</option>
+                    <option value="Thi cuối kỳ">Thi cuối kỳ</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Thời gian bắt đầu</label>
-                  <input required type="datetime-local" className="input-field" value={formData.startTime} onChange={(e) => setFormData({...formData, startTime: e.target.value})} />
+                  <input  type="datetime-local" className="input-field" value={formData.startTime} onChange={(e) => setFormData({...formData, startTime: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Thời gian kết thúc</label>
-                  <input required type="datetime-local" className="input-field" value={formData.endTime} onChange={(e) => setFormData({...formData, endTime: e.target.value})} />
+                  <input  type="datetime-local" className="input-field" value={formData.endTime} onChange={(e) => setFormData({...formData, endTime: e.target.value})} />
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl mt-4">
                   <input 

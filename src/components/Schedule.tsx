@@ -33,8 +33,6 @@ const localizer = dateFnsLocalizer({
 // Helper to generate dates for multiple weeks based on mock string like "Thứ Hai (07:30 - 09:30)"
 const getEventsForCurrentWeek = (classes: Class[], users: any[]) => {
   const events: any[] = [];
-  // Lấy mốc thời gian là tuần hiện tại để bắt đầu rải lịch
-  const semesterStartDate = new Date();
 
   const dayMap: { [key: string]: number } = {
     "Thứ Hai": 1,
@@ -49,51 +47,49 @@ const getEventsForCurrentWeek = (classes: Class[], users: any[]) => {
   classes.forEach((cls) => {
     const teacher = users.find((u) => u.id === cls.teacherId);
 
-    // Parse schedule string
+    if (!cls.startDate) return;
+
+    const semesterStartDate = new Date(cls.startDate);
+
     const match = cls.schedule.match(
-      /(Thứ [^\(]+)\s*\(([\d:]+)\s*-\s*([\d:]+)\)/,
+      /(Thứ [^\(]+)\s*\(([\d:]+)\s*-\s*([\d:]+)\)/
     );
+
     if (match) {
       const dayStr = match[1].trim();
       const startTimeStr = match[2].trim();
       const endTimeStr = match[3].trim();
 
       const targetDay = dayMap[dayStr];
+
       if (targetDay !== undefined) {
-        // Lấy số tuần từ database, nếu không có thì mặc định là 10 tuần
         const numberOfWeeks = cls.weeks || 10;
 
         const [startHour, startMin] = startTimeStr.split(":").map(Number);
         const [endHour, endMin] = endTimeStr.split(":").map(Number);
 
-        // Lặp qua số tuần để tạo event cho từng tuần
         for (let i = 0; i < numberOfWeeks; i++) {
-          // Tính toán ngày cho tuần đầu tiên
-          const currentDayOfWeek = semesterStartDate.getDay();
-          const diff = targetDay - currentDayOfWeek;
-
-          // Tính ngày cho event của tuần thứ i (cộng thêm i * 7 ngày)
           const eventDate = new Date(semesterStartDate);
-          eventDate.setDate(semesterStartDate.getDate() + diff + i * 7);
+
+          while (eventDate.getDay() !== targetDay) {
+            eventDate.setDate(eventDate.getDate() + 1);
+          }
+
+          eventDate.setDate(eventDate.getDate() + i * 7);
 
           const start = new Date(eventDate);
-          start.setHours(startHour, startMin, 0);
+          start.setHours(startHour, startMin, 0, 0);
 
           const end = new Date(eventDate);
-          end.setHours(endHour, endMin, 0);
-
-          const statuses = ["UPCOMING", "COMPLETED", "CANCELLED"];
-          const status = statuses[Math.floor(Math.random() * statuses.length)];
+          end.setHours(endHour, endMin, 0, 0);
 
           events.push({
-            // Tạo ID duy nhất cho mỗi event bằng cách nối thêm index tuần
             id: `${cls.id}_week_${i}`,
             title: cls.name,
             start,
             end,
             room: cls.room,
             teacher: teacher?.name || "Unknown",
-            status,
             code: cls.code,
           });
         }

@@ -295,7 +295,7 @@ export default function CurriculumManagement() {
                 {!isAddingNewMajor ? (
                   <div className="flex gap-2">
                     <select 
-                      required
+             
                       className="input-field flex-1"
                       value={formData.majorId}
                       onChange={(e) => setFormData({...formData, majorId: e.target.value})}
@@ -322,7 +322,6 @@ export default function CurriculumManagement() {
                       className="input-field"
                       value={newMajorCode}
                       onChange={(e) => setNewMajorCode(e.target.value)}
-                      required
                     />
                     <input 
                       type="text"
@@ -330,13 +329,11 @@ export default function CurriculumManagement() {
                       className="input-field"
                       value={newMajorName}
                       onChange={(e) => setNewMajorName(e.target.value)}
-                      required
                     />
                     
                     {!isAddingNewDepartment ? (
                       <div className="flex gap-2">
                         <select
-                          required
                           className="input-field flex-1"
                           value={newMajorDeptId}
                           onChange={(e) => setNewMajorDeptId(e.target.value)}
@@ -364,7 +361,6 @@ export default function CurriculumManagement() {
                           className="input-field"
                           value={newDepartmentCode}
                           onChange={(e) => setNewDepartmentCode(e.target.value)}
-                          required
                         />
                         <input 
                           type="text"
@@ -372,7 +368,6 @@ export default function CurriculumManagement() {
                           className="input-field"
                           value={newDepartmentName}
                           onChange={(e) => setNewDepartmentName(e.target.value)}
-                          required
                         />
                         <button 
                           type="button"
@@ -402,7 +397,6 @@ export default function CurriculumManagement() {
                 <label className="text-sm font-semibold text-slate-700">Mã môn học</label>
                 <input 
                   type="text"
-                  required
                   className="input-field"
                   value={formData.code}
                   onChange={(e) => setFormData({...formData, code: e.target.value})}
@@ -414,7 +408,6 @@ export default function CurriculumManagement() {
                 <label className="text-sm font-semibold text-slate-700">Tên môn học</label>
                 <input 
                   type="text"
-                  required
                   className="input-field"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -425,7 +418,6 @@ export default function CurriculumManagement() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">Học kỳ</label>
                 <select 
-                  required
                   className="input-field"
                   value={formData.semesterNumber}
                   onChange={(e) => setFormData({...formData, semesterNumber: Number(e.target.value)})}
@@ -441,7 +433,6 @@ export default function CurriculumManagement() {
                   <label className="text-sm font-semibold text-slate-700">Số tín chỉ</label>
                   <input 
                     type="number"
-                    required
                     min="1"
                     max="10"
                     className="input-field"
@@ -453,7 +444,6 @@ export default function CurriculumManagement() {
                   <label className="text-sm font-semibold text-slate-700">Tổng số tiết</label>
                   <input 
                     type="number"
-                    required
                     min="1"
                     className="input-field"
                     value={formData.totalPeriods}
@@ -464,7 +454,6 @@ export default function CurriculumManagement() {
                   <label className="text-sm font-semibold text-slate-700">Số tuần</label>
                   <input 
                     type="number"
-                    required
                     min="1"
                     className="input-field"
                     value={formData.weeks}

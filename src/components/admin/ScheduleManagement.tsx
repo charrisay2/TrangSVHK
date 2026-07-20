@@ -47,7 +47,8 @@ export default function ScheduleManagement() {
   const [newRoomFloor, setNewRoomFloor] = useState("1");
   const [newRoomCapacity, setNewRoomCapacity] = useState(40);
   const [newRoomBuilding, setNewRoomBuilding] = useState("A1");
-  const [newRoomStatus, setNewRoomStatus] = useState<"ACTIVE" | "CLOSED">(
+  // Hỗ trợ cả 3 trạng thái ACTIVE, INACTIVE và CLOSED từ cả 2 file ban đầu
+  const [newRoomStatus, setNewRoomStatus] = useState<"ACTIVE" | "INACTIVE" | "CLOSED">(
     "ACTIVE",
   );
   const [newStudentClassCohort, setNewStudentClassCohort] = useState("K20");
@@ -61,10 +62,11 @@ export default function ScheduleManagement() {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
 
+  // --- 1. THU THẬP NGUYÊN LIỆU: CHẠY 1 LẦN KHI ADMIN VỪA MỞ TRANG ---
   useEffect(() => {
-    dispatch(fetchCourses());
-    dispatch(fetchUsers());
-    fetchData();
+    dispatch(fetchCourses()); // Redux: Đem dữ liệu Lớp học phần về kho
+    dispatch(fetchUsers());   // Redux: Lấy danh sách giảng viên
+    fetchData();              // API kéo 5 mảng danh mục về làm menu xổ xuống (Dropdown)
   }, [dispatch]);
 
   const fetchData = async () => {
@@ -90,6 +92,7 @@ export default function ScheduleManagement() {
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
   const [availableTeachers, setAvailableTeachers] = useState<any[]>([]);
 
+  // Form state - Hợp nhất đầy đủ thuộc tính bao gồm cả mảng students, ngày bắt đầu và kết thúc
   const [newClass, setNewClass] = useState<Partial<Class>>({
     name: "",
     code: "",
@@ -102,10 +105,16 @@ export default function ScheduleManagement() {
     credits: 3,
     totalPeriods: 45,
     weeks: 10,
+    students: [],
+    startDate: "",
+    endDate: "",
   });
 
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | "">("");
 
+  // --- 2. LOGIC THÔNG MINH (AUTO-FILL) ---
+  // Hễ admin thay đổi chọn một Môn Học trong menu (selectedSubjectId) 
+  // Hook này sẽ kích hoạt, moi thông tin tương ứng ở trong Chương Trình Đạo Tạo (Tín chỉ, số tiết) để dán sang form học phần.
   useEffect(() => {
     if (selectedSubjectId) {
       const subject = subjects.find((s) => s.id === Number(selectedSubjectId));
@@ -125,6 +134,8 @@ export default function ScheduleManagement() {
   const [selectedDay, setSelectedDay] = useState("Thứ Hai");
   const [selectedSlot, setSelectedSlot] = useState("07:00 - 10:30");
 
+  // --- 3. ĐIỀU TRA XUNG ĐỘT (QUAN TRỌNG) ---
+  // Hàm này gọi thẳng xuống hệ thống Backend kiểm tra xem với Ngày/Giờ hiện tại thì còn những Phòng Học/Giảng viên nào trống chưa phân công
   const fetchAvailableResources = async () => {
     try {
       const scheduleString = `${selectedDay} (${selectedSlot})`;
@@ -168,6 +179,10 @@ export default function ScheduleManagement() {
     "Chủ Nhật",
   ];
 
+  const teachers = users.filter((u) => u.role === "TEACHER");
+
+  // --- 4. BỘ LỌC TÌM KIẾM LỚP HỌC TRÊN GIAO DIỆN ---
+  // Đánh giá tất cả 'classes', giữ lại những cái mà tên hoặc mã thỏa mãn chữ admin đang gõ vào ô search 
   const filteredClasses = classes.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -228,8 +243,10 @@ export default function ScheduleManagement() {
     }
   };
 
+  // --- 5. LƯU LỊCH HỌC VÀO MÁY CHỦ ---
+  // Nhận tín hiệu từ nút bấm Submit, đóng gói dữ liệu và đẩy xuống Database
   const handleAddClass = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Ngăn trình duyệt tải lại
     const scheduleString = `${selectedDay} (${selectedSlot})`;
 
     if (isEditModalOpen && editingClassId) {
@@ -255,6 +272,9 @@ export default function ScheduleManagement() {
           credits: 3,
           totalPeriods: 45,
           weeks: 10,
+          students: [],
+          startDate: "",
+          endDate: "",
         });
         toast.success("Cập nhật lịch học thành công!");
       } else {
@@ -274,6 +294,7 @@ export default function ScheduleManagement() {
         return;
       }
 
+      // Giữ nguyên việc chuyển đổi kiểu dữ liệu số an toàn (Number) và cập nhật thêm ngày bắt đầu/kết thúc
       const classToAdd: Partial<Class> = {
         name: newClass.name || "",
         code: newClass.code || "",
@@ -290,6 +311,9 @@ export default function ScheduleManagement() {
           ? Number(newClass.totalPeriods)
           : 45,
         weeks: newClass.weeks ? Number(newClass.weeks) : 10,
+        students: newClass.students || [],
+        startDate: newClass.startDate,
+        endDate: newClass.endDate,
       };
 
       const resultAction = await dispatch(createCourse(classToAdd));
@@ -308,6 +332,9 @@ export default function ScheduleManagement() {
           credits: 3,
           totalPeriods: 45,
           weeks: 10,
+          students: [],
+          startDate: "",
+          endDate: "",
         });
         toast.success("Thêm lịch học thành công!");
       } else {
@@ -380,6 +407,9 @@ export default function ScheduleManagement() {
                 credits: 3,
                 totalPeriods: 45,
                 weeks: 10,
+                students: [],
+                startDate: "",
+                endDate: "",
               });
             }}
             className="btn-primary flex items-center gap-2"
@@ -499,7 +529,7 @@ export default function ScheduleManagement() {
                   <input
                     type="text"
                     className="input-field bg-slate-50"
-                    value={newClass.name}
+                    value={newClass.name || ""}
                     readOnly
                   />
                 </div>
@@ -510,7 +540,7 @@ export default function ScheduleManagement() {
                   <input
                     type="text"
                     className="input-field bg-slate-50"
-                    value={newClass.code}
+                    value={newClass.code || ""}
                     readOnly
                   />
                 </div>
@@ -524,7 +554,7 @@ export default function ScheduleManagement() {
                   <input
                     type="number"
                     className="input-field bg-slate-50"
-                    value={newClass.credits}
+                    value={newClass.credits || 3}
                     readOnly
                   />
                 </div>
@@ -548,6 +578,24 @@ export default function ScheduleManagement() {
                     className="input-field bg-slate-50"
                     value={newClass.weeks || 10}
                     readOnly
+                  />
+                </div>
+              </div>
+
+              {/* Bổ sung input Ngày bắt đầu và Ngày kết thúc dự kiến từ File 2 */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Ngày bắt đầu dự kiến
+                  </label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={newClass.startDate || ""}
+                    onChange={(e) =>
+                      setNewClass({ ...newClass, startDate: e.target.value })
+                    }
+                    required
                   />
                 </div>
               </div>
@@ -776,6 +824,12 @@ export default function ScheduleManagement() {
                       <CalendarIcon size={16} className="text-primary" />
                       <span>{c.students?.length || 0} Sinh viên</span>
                     </div>
+                    {/* Render thông tin ngày bắt đầu - kết thúc thực tế lấy từ File 2 */}
+                    {(c.startDate || c.endDate) && (
+                      <div className="flex items-center gap-2 text-sm text-slate-500 italic">
+                        <span>{c.startDate || "?"} → {c.endDate || "?"}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -880,12 +934,13 @@ export default function ScheduleManagement() {
                     className="input-field"
                     value={newRoomStatus}
                     onChange={(e) =>
-                      setNewRoomStatus(e.target.value as "ACTIVE" | "CLOSED")
+                      setNewRoomStatus(e.target.value as "ACTIVE" | "INACTIVE" | "CLOSED")
                     }
                     required
                   >
                     <option value="ACTIVE">Hoạt động</option>
-                    <option value="CLOSED">Không hoạt động</option>
+                    <option value="INACTIVE">Không hoạt động (INACTIVE)</option>
+                    <option value="CLOSED">Không hoạt động (CLOSED)</option>
                   </select>
                 </div>
                 <div className="flex gap-2">
@@ -920,7 +975,6 @@ export default function ScheduleManagement() {
                       <p className="font-semibold text-slate-800">
                         {room.name}
                       </p>
-                      {/* FIX: Đã thêm ép kiểu (room as any).status ở đây */}
                       <p className="text-xs text-slate-500">
                         Tòa {room.building} - Sức chứa: {room.capacity} -{" "}
                         {(room as any).status === "ACTIVE"
@@ -932,8 +986,8 @@ export default function ScheduleManagement() {
                       onClick={() => {
                         setEditingRoomId(room.id);
                         setNewRoomBuilding(room.building || "A1");
-                        // FIX: Đã thêm ép kiểu (room as any).status ở đây
-                        setNewRoomStatus((room as any).status || "ACTIVE");
+                        // Ép kiểu an toàn chống lỗi dữ liệu không đồng bộ giữa ACTIVE/INACTIVE/CLOSED
+                        setNewRoomStatus(((room as any).status as any) || "ACTIVE");
 
                         const parts = room.name.split(".");
                         if (parts.length === 2 && parts[1].length >= 2) {
@@ -1026,7 +1080,7 @@ export default function ScheduleManagement() {
                           ?.code
                       }
                       ...
-                    </strong>
+                    </strong> (Số thứ tự sẽ được tự động thêm)
                   </div>
                 )}
                 <div className="flex gap-2">

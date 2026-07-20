@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { store, RootState, AppDispatch } from "./redux/store";
-import { fetchCurrentUser } from "./redux/slices/authSlice"; // Bổ sung fetchCurrentUser
+import { fetchCurrentUser } from "./redux/slices/authSlice";
 import { Toaster } from "sonner";
 import Login from "./components/Login";
 import MainLayout from "./layouts/MainLayout";
@@ -25,14 +25,14 @@ import Finance from "./components/Finance";
 import CourseRegistration from "./components/student/CourseRegistration";
 import Profile from "./components/Profile";
 import CurriculumManagement from "./components/admin/CurriculumManagement";
-
-// --- CÁC COMPONENT BỊ THIẾU CẦN LẤY LẠI ---
 import SmartRequests from "./components/shared/SmartRequests";
 import DataImport from "./components/admin/DataImport";
 import WarningCenter from "./components/admin/WarningCenter";
 import ExamManagement from "./components/teacher/ExamManagement";
 import StudentExams from "./components/student/StudentExams";
 import QRAttendancePage from "./components/student/QRAttendancePage";
+import ChangePasswordModal from "./components/ChangePasswordModal"; // Giữ lại từ file 2
+import CurriculumView from "./components/student/CurriculumView";     // Giữ lại từ file 2
 import { User, UserRole } from "./types";
 
 export type Module =
@@ -51,17 +51,19 @@ export type Module =
   | "finance"
   | "course-registration"
   | "profile"
-  | "requests"       // Thêm lại
-  | "import-data"    // Thêm lại
-  | "warnings"       // Thêm lại
-  | "exam-mgmt"      // Thêm lại
-  | "student-exams"   // Thêm lại
-  | "curriculum-mgmt";
+  | "requests"
+  | "import-data"
+  | "warnings"
+  | "exam-mgmt"
+  | "student-exams"
+  | "curriculum-mgmt"
+  | "curriculum-view"; // Hợp nhất đầy đủ các module type
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isInitialized } = useSelector((state: RootState) => state.auth);
   
+  // Giữ nguyên logic khởi tạo activeModule linh hoạt từ URL (Query Param) của file 1
   const [activeModule, setActiveModule] = useState<Module>(() => {
     const params = new URLSearchParams(window.location.search);
     const mod = params.get("module") as Module;
@@ -69,7 +71,6 @@ function AppContent() {
     return "home";
   });
 
-  // Sử dụng logic khởi tạo từ file gốc để đảm bảo lấy đúng user từ server
   useEffect(() => {
     dispatch(fetchCurrentUser());
   }, [dispatch]);
@@ -101,7 +102,6 @@ function AppContent() {
           <Login onLogin={() => {}} />
         </motion.div>
       ) : isQRAttendance ? (
-        // Bổ sung logic render trang QR Attendance
         <motion.div
           key="qr-attendance"
           initial={{ opacity: 0 }}
@@ -132,20 +132,21 @@ function AppContent() {
             {activeModule === "schedule-mgmt" && <ScheduleManagement />}
             {activeModule === "notifications" && <NotificationManagement />}
             
-            {/* Bổ sung các module quản trị & chung */}
+            {/* Các module quản trị & chung */}
             {activeModule === "import-data" && <DataImport />}
             {activeModule === "warnings" && <WarningCenter />}
             {activeModule === "requests" && <SmartRequests />}
             
-            {/* Bổ sung module giảng viên */}
+            {/* Module giảng viên */}
             {activeModule === "classes" && <MyClasses teacherId={user.id} />}
             {activeModule === "attendance" && <Attendance teacherId={user.id} />}
             {activeModule === "grade-entry" && <GradeEntry teacherId={user.id} />}
             {activeModule === "resources" && <ResourceUpload teacherId={user.id} />}
             {activeModule === "exam-mgmt" && <ExamManagement />}
             
-            {/* Bổ sung module sinh viên */}
+            {/* Module sinh viên */}
             {activeModule === "schedule" && <Schedule />}
+            {activeModule === "curriculum-view" && <CurriculumView />} {/* Giữ lại module xem khung chương trình từ file 2 */}
             {activeModule === "grades" && <Grades />}
             {activeModule === "finance" && <Finance />}
             {activeModule === "course-registration" && <CourseRegistration studentId={user.id} />}
@@ -153,6 +154,9 @@ function AppContent() {
             
             {activeModule === "profile" && <Profile user={user} />}
           </MainLayout>
+          
+          {/* Giữ lại Modal kiểm tra đổi mật khẩu bắt buộc cho người dùng từ file 2 */}
+          <ChangePasswordModal isOpen={!!user.mustChangePassword} />
         </motion.div>
       )}
     </AnimatePresence>

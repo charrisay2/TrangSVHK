@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'sonner';
-import { Lock, AlertTriangle, Send, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Lock, AlertTriangle, Send, CheckCircle, ShieldAlert, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface Props {
@@ -14,6 +14,52 @@ export default function ExamEnvironment({ examId, onComplete }: Props) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [cheatingAttempts, setCheatingAttempts] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (cheatingAttempts === 9) {
+      toast.error('CẢNH BÁO: BẠN CÒN 1 LẦN DUY NHẤT. LẦN CẢNH BÁO TIẾP THEO BÀI THI SẼ BỊ NỘP NGAY LẬP TỨC VÀ ĐÁNH DẤU VI PHẠM.', { duration: 10000 });
+      alert('CẢNH BÁO CUỐI CÙNG: Bạn đã vi phạm 9 lần. Vi phạm thêm 1 lần nữa hệ thống sẽ tự động đình chỉ và nộp bài.');
+    } else if (cheatingAttempts >= 10 && !submitting) {
+      alert('BÀI THI BỊ TẠM DỪNG: Bạn đã vi phạm quá nhiều lần. Bài thi sẽ được nộp tự động.');
+      forceSubmitDueToCheating();
+    }
+  }, [cheatingAttempts]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (exam && exam.endTime) {
+       const updateTimer = () => {
+          const now = new Date().getTime();
+          const end = new Date(exam.endTime).getTime();
+          const diff = Math.max(0, Math.floor((end - now) / 1000));
+          setTimeLeft(diff);
+          if (diff === 0 && !submitting) {
+             alert('HẾT GIỜ YÊU CẦU NỘP BÀI. HỆ THỐNG SẼ TỰ ĐỘNG NỘP.');
+             forceSubmitDueToCheating(); // Using same force submit method for time out
+          }
+       };
+       updateTimer(); // Initial update
+       timer = setInterval(updateTimer, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [exam, submitting]);
+
+  const forceSubmitDueToCheating = async () => {
+    setSubmitting(true);
+    try {
+      await api.post(`/exams/${examId}/submit`, { answers, cheatingAttempts: 10, isCheated: true });
+      toast.success('Hệ thống đã nộp bài.');
+      onComplete();
+    } catch (error) {
+      toast.error('Lỗi khi hệ thống nộp bài');
+      setSubmitting(false);
+    }
+  };
+
+  const handleIncrementCheating = () => {
+    setCheatingAttempts(prev => prev + 1);
+  }
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -26,23 +72,23 @@ export default function ExamEnvironment({ examId, onComplete }: Props) {
       }
     };
     fetchExam();
-    // alt + Tab 
+
     // Security constraints if lockdown mode
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-         setCheatingAttempts(prev => prev + 1);
+         handleIncrementCheating();
          toast.error('CẢNH BÁO BẢO MẬT: Phát hiện chuyển tab hoặc rời khỏi màn hình thi!', { duration: 5000 });
       }
     };
 
     const handleCopy = (e: ClipboardEvent) => { 
       e.preventDefault(); 
-      setCheatingAttempts(prev => prev + 1);
+      handleIncrementCheating();
       toast.warning('Không được phép copy trong môi trường thi.'); 
     };
     const handlePaste = (e: ClipboardEvent) => { 
       e.preventDefault(); 
-      setCheatingAttempts(prev => prev + 1);
+      handleIncrementCheating();
       toast.warning('Không được phép paste trong môi trường thi.'); 
     };
     const handleContextMenu = (e: MouseEvent) => {
@@ -80,7 +126,7 @@ export default function ExamEnvironment({ examId, onComplete }: Props) {
       onComplete();
     } catch (error) {
       toast.error('Lỗi khi nộp bài');
-      setSubmitting(false); 
+      setSubmitting(false);
     }
   };
 
@@ -102,13 +148,19 @@ export default function ExamEnvironment({ examId, onComplete }: Props) {
                <h1 className="font-bold text-xl text-slate-800 leading-tight">{exam.title}</h1>
                <p className="text-sm text-slate-500">Khảo thí trực tuyến an toàn - {exam.isLockdown ? 'Bật Lockdown' : 'Mở'}</p>
             </div>
+            {timeLeft !== null && (
+               <div className={`ml-6 px-4 py-2 rounded-xl font-mono font-bold text-xl shadow-sm border ${timeLeft < 300 ? 'bg-rose-50 text-rose-600 border-rose-200 animate-pulse' : 'bg-white text-slate-800 border-slate-200'}`}>
+                 <Clock size={20} className="inline mr-2 -mt-1"/>
+                 {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+               </div>
+            )}
          </div>
 
          <div className="flex items-center gap-6">
             {cheatingAttempts > 0 && (
                <div className="flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2 rounded-lg font-bold border border-rose-200">
                  <AlertTriangle size={20}/>
-                 Cảnh báo vi phạm: {cheatingAttempts}
+                 Vi phạm: {cheatingAttempts}/10
                </div>
             )}
             

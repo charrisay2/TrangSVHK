@@ -18,8 +18,8 @@ import {
   Menu,
   X,
   Megaphone,
-  ShieldAlert, // Bổ sung icon
-  FileSignature // Bổ sung icon
+  ShieldAlert,
+  FileSignature,
 } from "lucide-react";
 import { useState } from "react";
 import { Module } from "../../App";
@@ -41,12 +41,7 @@ const Sidebar: FC<SidebarProps> = ({
   const dispatch = useDispatch();
 
   const menuItems = [
-    {
-      id: "home",
-      label: "Tổng quan",
-      icon: LayoutDashboard,
-      roles: ["ADMIN", "TEACHER", "STUDENT"],
-    },
+    { id: "home", label: "Tổng quan", icon: LayoutDashboard, roles: ["ADMIN", "TEACHER", "STUDENT"] },
     {
       id: "users",
       label: "Quản lý người dùng",
@@ -57,102 +52,31 @@ const Sidebar: FC<SidebarProps> = ({
         { id: "student-mgmt", label: "Sinh viên" },
       ],
     },
-    {
-      id: "curriculum-mgmt",
-      label: "Quản lý chương trình đào tạo",
-      icon: BookOpen,
-      roles: ["ADMIN"],
-    },
-    {
-      id: "schedule-mgmt",
-      label: "Quản lý lịch học",
-      icon: Calendar,
-      roles: ["ADMIN"],
-    },
-    {
-      id: "import-data", // Bổ sung lại
-      label: "Nhập dữ liệu Excel",
-      icon: Upload,
-      roles: ["ADMIN"],
-    },
-    {
-      id: "warnings", // Bổ sung lại
-      label: "Trung tâm Cảnh báo",
-      icon: ShieldAlert,
-      roles: ["ADMIN"],
-    },
-    {
-      id: "notifications",
-      label: "Tạo thông báo",
-      icon: Megaphone,
-      roles: ["ADMIN"],
-    },
-    {
-      id: "classes",
-      label: "Lớp học của tôi",
-      icon: BookOpen,
-      roles: ["TEACHER"],
-    },
-    {
-      id: "attendance",
-      label: "Điểm danh",
-      icon: ClipboardCheck,
-      roles: ["TEACHER"],
-    },
-    {
-      id: "grade-entry",
-      label: "Nhập điểm",
-      icon: FileText,
-      roles: ["TEACHER"],
-    },
-    {
-      id: "exam-mgmt", // Bổ sung lại
-      label: "Khảo thí",
-      icon: ShieldAlert,
-      roles: ["TEACHER"],
-    },
-    {
-      id: "course-registration",
-      label: "Đăng ký học phần",
-      icon: BookOpen,
-      roles: ["STUDENT"],
-    },
+    { id: "curriculum-mgmt", label: "Quản lý chương trình đào tạo", icon: BookOpen, roles: ["ADMIN"] },
+    { id: "schedule-mgmt", label: "Quản lý lịch học", icon: Calendar, roles: ["ADMIN"] },
+    { id: "import-data", label: "Nhập dữ liệu Excel", icon: Upload, roles: ["ADMIN"] },
+    { id: "warnings", label: "Trung tâm Cảnh báo", icon: ShieldAlert, roles: ["ADMIN"] },
+    { id: "notifications", label: "Tạo thông báo", icon: Megaphone, roles: ["ADMIN"] },
+    { id: "classes", label: "Lớp học của tôi", icon: BookOpen, roles: ["TEACHER"] },
+    { id: "attendance", label: "Điểm danh", icon: ClipboardCheck, roles: ["TEACHER"] },
+    { id: "grade-entry", label: "Nhập điểm", icon: FileText, roles: ["TEACHER"] },
+    { id: "exam-mgmt", label: "Khảo thí", icon: ShieldAlert, roles: ["TEACHER"] },
+    { id: "course-registration", label: "Đăng ký học phần", icon: BookOpen, roles: ["STUDENT"] },
     { id: "schedule", label: "Lịch học", icon: Clock, roles: ["STUDENT"] },
-    {
-      id: "student-exams", // Bổ sung lại
-      label: "Thi trực tuyến",
-      icon: FileSignature,
-      roles: ["STUDENT"],
-    },
-    {
-      id: "grades",
-      label: "Kết quả học tập",
-      icon: GraduationCap,
-      roles: ["STUDENT"],
-    },
+    { id: "curriculum-view", label: "Chương trình khung", icon: BookOpen, roles: ["STUDENT"] },
+    { id: "student-exams", label: "Thi trực tuyến", icon: FileSignature, roles: ["STUDENT"] },
+    { id: "grades", label: "Kết quả học tập", icon: GraduationCap, roles: ["STUDENT"] },
     { id: "finance", label: "Học phí", icon: Wallet, roles: ["STUDENT"] },
-    {
-      id: "requests", // Bổ sung lại
-      label: "Đơn từ thông minh",
-      icon: FileText,
-      roles: ["STUDENT", "TEACHER", "ADMIN"],
-    },
-    {
-      id: "profile",
-      label: "Hồ sơ cá nhân",
-      icon: UserCircle,
-      roles: ["ADMIN", "TEACHER", "STUDENT"],
-    },
+    { id: "requests", label: "Đơn từ thông minh", icon: FileText, roles: ["STUDENT", "TEACHER", "ADMIN"] },
+    { id: "profile", label: "Hồ sơ cá nhân", icon: UserCircle, roles: ["ADMIN", "TEACHER", "STUDENT"] },
   ];
 
-  const filteredMenu = menuItems.filter(
-    (item) => user && item.roles.includes(user.role),
-  );
+  const filteredMenu = menuItems.filter((item) => user && item.roles.includes(user.role));
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["users"]);
 
   const toggleMenu = (id: string) => {
     setExpandedMenus((prev) =>
-      prev.includes(id) ? prev.filter((mId) => mId !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((mId) => mId !== id) : [...prev, id]
     );
   };
 
@@ -169,22 +93,21 @@ const Sidebar: FC<SidebarProps> = ({
       {/* Sidebar */}
       <aside
         className={`
-        fixed top-0 left-0 z-30 h-screen w-64 bg-white border-r border-slate-200 transition-transform duration-300 ease-in-out flex flex-col
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0 lg:static
-      `}
+          fixed top-0 left-0 z-30 h-screen w-64 bg-white border-r border-slate-200 transition-transform duration-300 ease-in-out flex flex-col
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:static
+        `}
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 shrink-0">
-          <div className="flex items-center justify-center w-full">
-            <img
-              src="/logo_hk.jpg"
-              alt="Vietnam Aviation Academy"
-              className="h-10 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 cursor-pointer"
-            />
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">
+              U
+            </div>
+            <span className="font-bold text-xl text-slate-800">UniManage</span>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-slate-600 absolute right-2"
+            className="lg:hidden text-slate-400 hover:text-slate-600"
           >
             <X size={24} />
           </button>
@@ -254,7 +177,9 @@ const Sidebar: FC<SidebarProps> = ({
                     </div>
                     {item.subItems && (
                       <svg
-                        className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        className={`w-4 h-4 transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -263,7 +188,6 @@ const Sidebar: FC<SidebarProps> = ({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
                         />
                       </svg>
                     )}
@@ -298,6 +222,7 @@ const Sidebar: FC<SidebarProps> = ({
           </nav>
         </div>
 
+        {/* Khối Đăng xuất: Giữ nguyên cơ chế reset activeModule về "home" từ file 2 */}
         <div className="absolute bottom-0 left-0 w-full p-4 border-t border-slate-100 bg-white">
           <button
             onClick={() => {
