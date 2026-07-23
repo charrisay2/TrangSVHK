@@ -300,13 +300,13 @@ export default function SmartRequests() {
                   {req.attachmentUrl && (
                     <div className="mt-2">
                       <a
-                        href={`https://trangsv.congsinhvieen.id.vn${req.attachmentUrl}`}
+                        href={req.attachmentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-indigo-600 font-bold hover:underline flex items-center gap-1"
                       >
                         <FileText size={16} />
-                        Xem minh chứng đính kèm
+                        Xem tệp đính kèm
                       </a>
                     </div>
                   )}
