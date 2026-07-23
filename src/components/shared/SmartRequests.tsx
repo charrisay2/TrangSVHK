@@ -300,7 +300,7 @@ export default function SmartRequests() {
                   {req.attachmentUrl && (
                     <div className="mt-2">
                       <a
-                        href={`http://localhost:3001${req.attachmentUrl}`}
+                        href={`https://trangsv.congsinhvieen.id.vn${req.attachmentUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-indigo-600 font-bold hover:underline flex items-center gap-1"
